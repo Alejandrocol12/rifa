@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Vendedores - Rifa{% endblock %}
+{% block content %}
+<h1>Vendedores</h1>
+
+<details class="bloque-numeros" open>
+  <summary>+ Crear nuevo vendedor</summary>
+  <form method="post" class="ticket-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Usuario</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="nombre">Nombre completo</label>
+    <input type="text" id="nombre" name="nombre" required>
+
+    <label for="telefono">Teléfono</label>
+    <input type="text" id="telefono" name="telefono" placeholder="Para que los clientes lo contacten si les falta pagar">
+
+    <label for="password">Contraseña</label>
+    <input type="password" id="password" name="password" required>
+
+    <label class="checkbox-label">
+      <input type="checkbox" name="is_admin"> Es administrador
+    </label>
+
+    <button type="submit" class="btn btn-primary">Crear vendedor</button>
+  </form>
+</details>
+
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>Usuario</th>
+      <th>Nombre</th>
+      <th>Teléfono</th>
+      <th>Rol</th>
+      <th>Estado</th>
+      <th>Creado</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in vendedores %}
+    <tr>
+      <td>{{ v.username }}</td>
+      <td>{{ v.nombre }}</td>
+      <td>{{ v.telefono or '—' }}</td>
+      <td>{% if v.is_admin %}<span class="badge-admin">Admin</span>{% else %}Vendedor{% endif %}</td>
+      <td>{% if v.activo %}<span class="estado-libre">● Activo</span>{% else %}<span class="estado-ocupado">● Inactivo</span>{% endif %}</td>
+      <td>{{ v.fecha_creacion.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <div class="actions-row actions-row-tabla">
+          <a href="{{ url_for('main.admin_editar_vendedor', vendedor_id=v.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+          <a href="{{ url_for('main.admin_vendedor_historial', vendedor_id=v.id) }}" class="btn btn-secondary btn-sm">Ver historial</a>
+          {% if v.id != current_user.id %}
+          <form method="post" action="{{ url_for('main.admin_toggle_vendedor', vendedor_id=v.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-secondary btn-sm">
+              {{ 'Desactivar' if v.activo else 'Activar' }}
+            </button>
+          </form>
+          {% if v.boletas|length == 0 %}
+          <form
+            method="post"
+            action="{{ url_for('main.admin_eliminar_vendedor', vendedor_id=v.id) }}"
+            onsubmit="return confirm('¿Eliminar a {{ v.username }}? Esta acción no se puede deshacer.');"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-secondary btn-sm btn-peligro">Eliminar</button>
+          </form>
+          {% endif %}
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

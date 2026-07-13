@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Inicio - Rifa{% endblock %}
+{% block content %}
+<h1>Resumen de la rifa</h1>
+
+<div class="cards">
+  <div class="card">
+    <span class="card-icon">🎟️</span>
+    <span class="card-value">{{ total_boletas }}</span>
+    <span class="card-label">Boletas vendidas (de 3.333)</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🔒</span>
+    <span class="card-value">{{ numeros_asignados }}</span>
+    <span class="card-label">Números ocupados (de {{ total_numeros }})</span>
+  </div>
+  <div class="card card-success">
+    <span class="card-icon">✨</span>
+    <span class="card-value">{{ numeros_libres }}</span>
+    <span class="card-label">Números libres</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🧾</span>
+    <span class="card-value">{{ mis_boletas }}</span>
+    <span class="card-label">Mis boletas vendidas</span>
+  </div>
+</div>
+
+<div class="actions-row">
+  <a href="{{ url_for('main.registrar') }}" class="btn btn-primary">+ Registrar nuevo cliente</a>
+  <a href="{{ url_for('main.numeros') }}" class="btn btn-secondary">Ver mapa de números</a>
+</div>
+{% endblock %}

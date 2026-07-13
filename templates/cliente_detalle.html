@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ resumen.nombre }} - Rifa{% endblock %}
+{% block content %}
+<div class="titulo-con-accion">
+  <h1>{{ resumen.nombre }} <span class="hint">(doc. {{ resumen.documento }})</span></h1>
+  <a href="{{ url_for('main.clientes') }}" class="btn btn-secondary btn-sm">&larr; Volver a clientes</a>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <span class="card-icon">🎟️</span>
+    <span class="card-value">{{ resumen.total_boletas }}</span>
+    <span class="card-label">Boletas compradas</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🔢</span>
+    <span class="card-value">{{ resumen.total_numeros }}</span>
+    <span class="card-label">Números comprados</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">📞</span>
+    <span class="card-value">{{ resumen.telefono }}</span>
+    <span class="card-label">Teléfono</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🕑</span>
+    <span class="card-value">{{ resumen.ultima_fecha.strftime('%Y-%m-%d') }}</span>
+    <span class="card-label">Última compra</span>
+  </div>
+</div>
+
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Vendedor</th>
+      <th>Números</th>
+      <th>Pago</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in boletas %}
+    <tr>
+      <td><a href="{{ url_for('main.boleta_detalle', boleta_id=b.id) }}">#{{ b.id }}</a></td>
+      <td>{{ b.vendedor.nombre }}</td>
+      <td>{% for n in b.numeros %}<span class="chip">{{ n.numero }}</span>{% endfor %}</td>
+      <td>
+        {% if b.pago_completo %}<span class="estado-libre">{{ b.premios_pagados }}/4</span>
+        {% elif b.premios_pagados > 0 %}<span class="estado-invalido">{{ b.premios_pagados }}/4</span>
+        {% else %}<span class="estado-ocupado">0/4</span>{% endif %}
+      </td>
+      <td>{{ b.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

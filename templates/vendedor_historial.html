@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Historial de {{ vendedor.nombre }} - Rifa{% endblock %}
+{% block content %}
+<h1>Historial de {{ vendedor.nombre }} <span class="hint">(@{{ vendedor.username }})</span></h1>
+
+<div class="cards">
+  <div class="card">
+    <span class="card-icon">🎟️</span>
+    <span class="card-value">{{ total_boletas }}</span>
+    <span class="card-label">Boletas vendidas</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🔢</span>
+    <span class="card-value">{{ total_numeros }}</span>
+    <span class="card-label">Números vendidos</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🕐</span>
+    <span class="card-value">{{ primera_fecha.strftime('%Y-%m-%d') if primera_fecha else '—' }}</span>
+    <span class="card-label">Primera venta</span>
+  </div>
+  <div class="card">
+    <span class="card-icon">🕑</span>
+    <span class="card-value">{{ ultima_fecha.strftime('%Y-%m-%d') if ultima_fecha else '—' }}</span>
+    <span class="card-label">Última venta</span>
+  </div>
+</div>
+
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Cliente</th>
+      <th>Documento</th>
+      <th>Teléfono</th>
+      <th>Números</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in boletas %}
+    <tr>
+      <td><a href="{{ url_for('main.boleta_detalle', boleta_id=b.id) }}">#{{ b.id }}</a></td>
+      <td>{{ b.cliente.nombre }}</td>
+      <td>{{ b.cliente.documento }}</td>
+      <td>{{ b.cliente.telefono }}</td>
+      <td>{% for n in b.numeros %}<span class="chip">{{ n.numero }}</span>{% endfor %}</td>
+      <td>{{ b.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="celda-vacia">Este vendedor todavía no ha registrado boletas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if pagina.pages > 1 %}
+<nav class="paginacion">
+  {% if pagina.has_prev %}
+    <a href="{{ url_for('main.admin_vendedor_historial', vendedor_id=vendedor.id, page=pagina.prev_num) }}" class="btn btn-secondary btn-sm">&larr; Anterior</a>
+  {% endif %}
+  <span>Página {{ pagina.page }} de {{ pagina.pages }}</span>
+  {% if pagina.has_next %}
+    <a href="{{ url_for('main.admin_vendedor_historial', vendedor_id=vendedor.id, page=pagina.next_num) }}" class="btn btn-secondary btn-sm">Siguiente &rarr;</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+<div class="actions-row">
+  <a href="{{ url_for('main.admin_vendedores') }}" class="btn btn-secondary">&larr; Volver a vendedores</a>
+</div>
+{% endblock %}

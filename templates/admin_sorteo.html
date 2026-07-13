@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Sorteo - Rifa{% endblock %}
+{% block content %}
+<h1>Sorteo del ganador</h1>
+<p class="hint">
+  Registra aquí el número que salió ganador y a cuál de los 4 premios corresponde (por
+  ejemplo, en la lotería con la que se rige esta rifa). El sistema busca automáticamente
+  si ese número fue vendido, a quién, y si alcanzó a pagar ese premio.
+</p>
+
+<fieldset>
+  <legend>Fechas de sorteo por premio</legend>
+  <p class="hint">
+    Cada premio se juega en su propia fecha. Se muestran públicamente en la página de
+    consulta de clientes, con cuenta regresiva — y también funcionan como el plazo límite
+    para que un cliente pague ese premio.
+  </p>
+  <form method="post" action="{{ url_for('main.admin_configurar_fechas_sorteo') }}" class="ticket-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for i in (1, 2, 3, 4) %}
+    <label for="fecha_premio{{ i }}">Fecha y hora — Premio {{ i }}</label>
+    <input
+      type="datetime-local"
+      id="fecha_premio{{ i }}"
+      name="fecha_premio{{ i }}"
+      value="{{ config['fecha_premio' ~ i].strftime('%Y-%m-%dT%H:%M') if config['fecha_premio' ~ i] else '' }}">
+    {% endfor %}
+    <button type="submit" class="btn btn-primary btn-block">Guardar fechas</button>
+  </form>
+</fieldset>
+
+<fieldset>
+  <legend>Pantalla en vivo</legend>
+  <p class="hint">
+    Cada premio tiene su propia página pública (los clientes también pueden verla) para
+    proyectar durante su sorteo: muestra una cuenta regresiva animada hasta la fecha
+    configurada arriba, y en cuanto registras aquí abajo el número ganador de ese premio,
+    se revela solo en letras gigantes, sin recargar.
+  </p>
+  <a href="{{ url_for('main.pantalla_selector') }}" target="_blank" class="btn btn-secondary">Abrir pantallas en vivo &#8599;</a>
+</fieldset>
+
+<fieldset>
+  <legend>Registrar número ganador</legend>
+  <form method="post" class="ticket-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="numeros-inputs">
+      <div class="numero-field">
+        <label for="numero">Número ganador *</label>
+        <input
+          type="text"
+          id="numero"
+          name="numero"
+          class="numero-input"
+          maxlength="4"
+          inputmode="numeric"
+          pattern="\d{4}"
+          placeholder="0000"
+          autocomplete="off"
+          required>
+      </div>
+    </div>
+
+    <label for="numero_premio">Premio *</label>
+    <select id="numero_premio" name="numero_premio" required>
+      <option value="" disabled selected>Selecciona el premio (1 a 4)</option>
+      <option value="1">Premio 1</option>
+      <option value="2">Premio 2</option>
+      <option value="3">Premio 3</option>
+      <option value="4">Premio 4</option>
+    </select>
+
+    <label for="etiqueta">Descripción (opcional)</label>
+    <input type="text" id="etiqueta" name="etiqueta" placeholder="Ej: Sorteo del 20 de julio">
+
+    <button type="submit" class="btn btn-primary btn-block">Registrar sorteo</button>
+  </form>
+</fieldset>
+
+<h2>Historial de sorteos</h2>
+{% if resultados %}
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>Número</th>
+      <th>Premio</th>
+      <th>Descripción</th>
+      <th>Ganador</th>
+      <th>Pago del premio</th>
+      <th>Registrado por</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in resultados %}
+    <tr>
+      <td><span class="chip chip-lg">{{ r.sorteo.numero }}</span></td>
+      <td>Premio {{ r.sorteo.numero_premio }}</td>
+      <td>{{ r.sorteo.etiqueta or '—' }}</td>
+      <td>
+        {% if r.boleta %}
+          <a href="{{ url_for('main.boleta_detalle', boleta_id=r.boleta.id) }}">{{ r.boleta.cliente.nombre }}</a>
+          <span class="hint">(doc. {{ r.boleta.cliente.documento }})</span>
+        {% else %}
+          <span class="estado-ocupado">Sin ganador — número no vendido</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if r.boleta %}
+          {% if r.pago_al_dia %}<span class="estado-libre">✓ Pagó este premio</span>
+          {% else %}<span class="estado-ocupado">✗ No pagó este premio (no reclama)</span>{% endif %}
+        {% else %}—{% endif %}
+      </td>
+      <td>{{ r.sorteo.registrado_por.nombre }}</td>
+      <td>{{ r.sorteo.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="hint">Todavía no se ha registrado ningún sorteo.</p>
+{% endif %}
+{% endblock %}

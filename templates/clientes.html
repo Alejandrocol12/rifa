@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Clientes - Rifa{% endblock %}
+{% block content %}
+<div class="titulo-con-accion">
+  <h1>Clientes registrados</h1>
+  <a href="{{ url_for('main.registrar') }}" class="btn btn-primary btn-sm">+ Registrar cliente</a>
+</div>
+
+<form method="get" class="buscar-form">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre, documento o teléfono...">
+  <button type="submit" class="btn btn-secondary">Buscar</button>
+</form>
+
+<p class="hint">{{ total_clientes }} cliente{{ 's' if total_clientes != 1 }} (identificados por cédula/documento).</p>
+
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>Cliente</th>
+      <th>Documento</th>
+      <th>Teléfono</th>
+      <th>Boletas</th>
+      <th>Números</th>
+      <th>Última compra</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in clientes %}
+    <tr>
+      <td>{{ c.nombre }}</td>
+      <td>{{ c.documento }}</td>
+      <td>{{ c.telefono }}</td>
+      <td>{{ c.total_boletas }}</td>
+      <td>{{ c.total_numeros }}</td>
+      <td>{{ c.ultima_fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td><a href="{{ url_for('main.cliente_detalle', documento=c.documento) }}">Ver boletas</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="celda-vacia">No hay clientes registrados todavía.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if total_paginas > 1 %}
+<nav class="paginacion">
+  {% if page > 1 %}
+    <a href="{{ url_for('main.clientes', q=q, page=page - 1) }}" class="btn btn-secondary btn-sm">&larr; Anterior</a>
+  {% endif %}
+  <span>Página {{ page }} de {{ total_paginas }}</span>
+  {% if page < total_paginas %}
+    <a href="{{ url_for('main.clientes', q=q, page=page + 1) }}" class="btn btn-secondary btn-sm">Siguiente &rarr;</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

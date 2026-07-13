@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ vendedor.nombre }} - Rifa{% endblock %}
+{% block content %}
+<h1>Editar vendedor</h1>
+
+<form method="post" class="ticket-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p class="hint">Usuario: <strong>{{ vendedor.username }}</strong> (no se puede cambiar aquí).</p>
+
+  <label for="nombre">Nombre completo *</label>
+  <input type="text" id="nombre" name="nombre" value="{{ vendedor.nombre }}" required>
+
+  <label for="telefono">Teléfono</label>
+  <input type="text" id="telefono" name="telefono" value="{{ vendedor.telefono or '' }}" placeholder="Para que los clientes lo contacten si les falta pagar">
+
+  <div class="actions-row">
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="{{ url_for('main.admin_vendedores') }}" class="btn btn-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

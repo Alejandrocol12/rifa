@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Sorteo en vivo - Premio {{ numero_premio }} - Rifa{% endblock %}
+{% block content %}
+<div
+  class="pantalla-live"
+  id="pantalla-live"
+  data-numero-premio="{{ numero_premio }}"
+  data-fecha-premio="{{ fecha_premio.isoformat() if fecha_premio else '' }}"
+>
+  <p class="pantalla-live-estado" id="pantalla-estado">Cuenta regresiva — Premio {{ numero_premio }}</p>
+
+  <div class="pantalla-cuenta" id="pantalla-cuenta">
+    <div class="pantalla-cuenta-caja"><span id="cuenta-dias">00</span><small>días</small></div>
+    <div class="pantalla-cuenta-caja"><span id="cuenta-horas">00</span><small>horas</small></div>
+    <div class="pantalla-cuenta-caja"><span id="cuenta-min">00</span><small>min</small></div>
+    <div class="pantalla-cuenta-caja"><span id="cuenta-seg">00</span><small>seg</small></div>
+  </div>
+
+  <p class="pantalla-live-premio" id="pantalla-premio" hidden></p>
+  <p class="pantalla-live-numero" id="pantalla-numero" hidden></p>
+  <p class="pantalla-live-etiqueta" id="pantalla-etiqueta"></p>
+
+  <a href="{{ url_for('main.pantalla_selector') }}" class="pantalla-live-volver">&larr; Ver otro premio</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  inicializarPantallaEnVivo();
+</script>
+{% endblock %}

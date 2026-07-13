@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Registrar cliente - Rifa{% endblock %}
+{% block content %}
+<div class="titulo-con-accion">
+  <h1>Registrar cliente y números</h1>
+  <a href="{{ url_for('main.clientes') }}" class="btn btn-secondary btn-sm">Ver clientes registrados</a>
+</div>
+
+<form method="post" class="ticket-form" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <fieldset>
+    <legend>Datos del cliente</legend>
+
+    <label for="documento">Cédula / Documento *</label>
+    <input type="text" id="documento" name="documento" value="{{ form.documento or '' }}" autocomplete="off" required>
+
+    <div id="cliente-info" class="cliente-info" hidden>
+      <span class="cliente-info-texto"></span>
+      <button type="button" class="btn btn-secondary btn-sm btn-usar-datos">Usar estos datos</button>
+    </div>
+
+    <label for="nombre_cliente">Nombre completo *</label>
+    <input type="text" id="nombre_cliente" name="nombre_cliente" value="{{ form.nombre_cliente or '' }}" required>
+
+    <label for="telefono">Teléfono *</label>
+    <input type="text" id="telefono" name="telefono" value="{{ form.telefono or '' }}" required>
+
+    <label for="direccion">Dirección</label>
+    <input type="text" id="direccion" name="direccion" value="{{ form.direccion or '' }}">
+
+    <label for="email">Correo electrónico</label>
+    <input type="email" id="email" name="email" value="{{ form.email or '' }}">
+  </fieldset>
+
+  <fieldset>
+    <legend>Números elegidos (4 cifras, de 0000 a 9999)</legend>
+    <p class="hint">Cada número se verifica automáticamente al escribirlo. Los 3 números deben ser distintos entre sí.</p>
+
+    <div class="numeros-inputs">
+      {% for i in (1, 2, 3) %}
+      <div class="numero-field">
+        <label for="numero{{ i }}">Número {{ i }}</label>
+        <input
+          type="text"
+          id="numero{{ i }}"
+          name="numero{{ i }}"
+          class="numero-input"
+          maxlength="4"
+          inputmode="numeric"
+          pattern="\d{4}"
+          placeholder="0000"
+          value="{{ form['numero' ~ i] or '' }}"
+          autocomplete="off"
+          required>
+        <span class="numero-estado" id="estado-numero{{ i }}"></span>
+      </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <button type="submit" class="btn btn-primary">Registrar boleta</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.numero-input').forEach(function (input) {
+    input.addEventListener('input', function () {
+      input.value = input.value.replace(/\D/g, '').slice(0, 4);
+      verificarNumero(input);
+    });
+    if (input.value) verificarNumero(input);
+  });
+
+  inicializarBusquedaCliente();
+</script>
+{% endblock %}

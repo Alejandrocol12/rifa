@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Boletas - Rifa{% endblock %}
+{% block content %}
+<h1>{{ 'Todas las boletas' if current_user.is_admin else 'Mis boletas' }}</h1>
+
+<form method="get" class="buscar-form">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre, documento o teléfono...">
+  {% if pago %}<input type="hidden" name="pago" value="{{ pago }}">{% endif %}
+  <button type="submit" class="btn btn-secondary">Buscar</button>
+</form>
+
+<div class="filtro-pago">
+  <a href="{{ url_for('main.boletas', q=q) }}" class="btn btn-sm {{ 'btn-primary' if not pago else 'btn-secondary' }}">Todas</a>
+  <a href="{{ url_for('main.boletas', q=q, pago='pendiente') }}" class="btn btn-sm {{ 'btn-primary' if pago == 'pendiente' else 'btn-secondary' }}">Pago pendiente</a>
+  <a href="{{ url_for('main.boletas', q=q, pago='completo') }}" class="btn btn-sm {{ 'btn-primary' if pago == 'completo' else 'btn-secondary' }}">Pago completo</a>
+</div>
+
+<div class="tabla-wrap">
+<table class="tabla-boletas">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Cliente</th>
+      <th>Documento</th>
+      <th>Teléfono</th>
+      <th>Números</th>
+      <th>Pago</th>
+      {% if current_user.is_admin %}<th>Vendedor</th>{% endif %}
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in boletas %}
+    <tr>
+      <td><a href="{{ url_for('main.boleta_detalle', boleta_id=b.id) }}">#{{ b.id }}</a></td>
+      <td>{{ b.cliente.nombre }}</td>
+      <td>{{ b.cliente.documento }}</td>
+      <td>{{ b.cliente.telefono }}</td>
+      <td>{% for n in b.numeros %}<span class="chip">{{ n.numero }}</span>{% endfor %}</td>
+      <td>
+        {% if b.pago_completo %}<span class="estado-libre">{{ b.premios_pagados }}/4</span>
+        {% elif b.premios_pagados > 0 %}<span class="estado-invalido">{{ b.premios_pagados }}/4</span>
+        {% else %}<span class="estado-ocupado">0/4</span>{% endif %}
+      </td>
+      {% if current_user.is_admin %}<td>{{ b.vendedor.nombre }}</td>{% endif %}
+      <td>{{ b.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" class="celda-vacia">Aún no hay boletas registradas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if pagina.pages > 1 %}
+<nav class="paginacion">
+  {% if pagina.has_prev %}
+    <a href="{{ url_for('main.boletas', q=q, pago=pago, page=pagina.prev_num) }}" class="btn btn-secondary btn-sm">&larr; Anterior</a>
+  {% endif %}
+  <span>Página {{ pagina.page }} de {{ pagina.pages }}</span>
+  {% if pagina.has_next %}
+    <a href="{{ url_for('main.boletas', q=q, pago=pago, page=pagina.next_num) }}" class="btn btn-secondary btn-sm">Siguiente &rarr;</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

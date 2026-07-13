@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Boleta #{{ boleta.id }} - Rifa{% endblock %}
+{% block content %}
+<h1>Boleta #{{ boleta.id }}</h1>
+
+<div class="detalle-box">
+  <p><strong>Cliente:</strong> {{ boleta.cliente.nombre }}</p>
+  <p><strong>Documento:</strong> {{ boleta.cliente.documento }}</p>
+  <p><strong>Teléfono:</strong> {{ boleta.cliente.telefono }}</p>
+  {% if boleta.cliente.direccion %}<p><strong>Dirección:</strong> {{ boleta.cliente.direccion }}</p>{% endif %}
+  {% if boleta.cliente.email %}<p><strong>Correo:</strong> {{ boleta.cliente.email }}</p>{% endif %}
+  <p><strong>Vendedor:</strong> {{ boleta.vendedor.nombre }}</p>
+  <p><strong>Fecha:</strong> {{ boleta.fecha.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p><strong>Números:</strong>
+    <span>{% for n in boleta.numeros %}<span class="chip chip-lg">{{ n.numero }}</span>{% endfor %}</span>
+  </p>
+</div>
+
+<fieldset>
+  <legend>Pago (4 premios de $25.000 c/u — total $100.000)</legend>
+  <p class="hint">
+    Con estos 3 números se juega en los 4 premios; el cliente puede pagar de a uno.
+    Llevas pagados <strong>${{ '{:,}'.format(boleta.monto_pagado).replace(',', '.') }}</strong>
+    de $100.000 ({{ boleta.premios_pagados }} de 4).
+  </p>
+  <form method="post" action="{{ url_for('main.boleta_pago', boleta_id=boleta.id) }}" class="pago-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for i in (1, 2, 3, 4) %}
+    <label class="checkbox-label pago-premio">
+      <input type="checkbox" name="pagado_premio{{ i }}" {% if boleta['pagado_premio' ~ i] %}checked{% endif %}>
+      Premio {{ i }} ($25.000)
+    </label>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary btn-sm">Guardar pago</button>
+  </form>
+</fieldset>
+
+<div class="actions-row">
+  <a href="{{ url_for('main.boletas') }}" class="btn btn-secondary">&larr; Volver</a>
+  {% if current_user.is_admin or boleta.vendedor_id == current_user.id %}
+  <a href="{{ url_for('main.boleta_editar', boleta_id=boleta.id) }}" class="btn btn-primary">Editar datos del cliente</a>
+  {% endif %}
+</div>
+{% endblock %}

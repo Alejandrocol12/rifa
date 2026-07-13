@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Editar boleta #{{ boleta.id }} - Rifa{% endblock %}
+{% block content %}
+<h1>Editar boleta #{{ boleta.id }}</h1>
+
+<form method="post" class="ticket-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <fieldset>
+    <legend>Datos del cliente</legend>
+    <p class="hint">
+      El documento (<strong>{{ boleta.cliente.documento }}</strong>) identifica al cliente en todo el
+      sistema y no se puede cambiar desde aquí; si está mal escrito, contacta al administrador.
+    </p>
+
+    <label for="nombre_cliente">Nombre completo *</label>
+    <input type="text" id="nombre_cliente" name="nombre_cliente" value="{{ form.nombre_cliente or boleta.cliente.nombre }}" required>
+
+    <label for="telefono">Teléfono *</label>
+    <input type="text" id="telefono" name="telefono" value="{{ form.telefono or boleta.cliente.telefono }}" required>
+
+    <label for="direccion">Dirección</label>
+    <input type="text" id="direccion" name="direccion" value="{{ form.direccion or boleta.cliente.direccion or '' }}">
+
+    <label for="email">Correo electrónico</label>
+    <input type="email" id="email" name="email" value="{{ form.email or boleta.cliente.email or '' }}">
+  </fieldset>
+
+  <fieldset>
+    <legend>Números asignados</legend>
+    <p class="hint">Los números no se pueden cambiar desde aquí; solo los datos de contacto del cliente.</p>
+    <p>{% for n in boleta.numeros %}<span class="chip chip-lg">{{ n.numero }}</span>{% endfor %}</p>
+  </fieldset>
+
+  <div class="actions-row">
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="{{ url_for('main.boleta_detalle', boleta_id=boleta.id) }}" class="btn btn-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

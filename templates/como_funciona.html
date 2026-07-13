@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Cómo funciona esta rifa{% endblock %}
+{% block content %}
+<h1>🎟️ Cómo funciona esta rifa</h1>
+
+<div class="explicacion-grid">
+  <div class="explicacion-card">
+    <span class="explicacion-icono">🔢</span>
+    <h2>Tus números</h2>
+    <p>Cada boleta trae <strong>3 números de 4 cifras</strong> (entre 0000 y 9999), igual que en la lotería. Eliges los que quieras, mientras estén libres.</p>
+  </div>
+  <div class="explicacion-card">
+    <span class="explicacion-icono">💵</span>
+    <h2>Precio</h2>
+    <p>Cada boleta cuesta <strong>${{ '{:,}'.format(precio_total).replace(',', '.') }}</strong>, dividido en 4 partes de <strong>${{ '{:,}'.format(precio_premio).replace(',', '.') }}</strong> cada una — una por cada premio.</p>
+  </div>
+  <div class="explicacion-card">
+    <span class="explicacion-icono">🏆</span>
+    <h2>4 premios, 4 sorteos</h2>
+    <p>Se juegan 4 premios distintos, cada uno en su propia fecha. Con cualquiera de tus 3 números puedes ganar cualquiera de los 4 premios.</p>
+  </div>
+  <div class="explicacion-card">
+    <span class="explicacion-icono">✅</span>
+    <h2>Debes estar al día</h2>
+    <p>Solo puedes reclamar un premio si ya pagaste esos ${{ '{:,}'.format(precio_premio).replace(',', '.') }} de ese premio específico, antes de la fecha de su sorteo. Puedes pagar los 4 de una vez o de a poco.</p>
+  </div>
+  <div class="explicacion-card">
+    <span class="explicacion-icono">🔍</span>
+    <h2>Consulta cuando quieras</h2>
+    <p>Con tu cédula puedes ver tus números, cuánto llevas pagado y si ya ganaste algún premio, sin necesidad de una cuenta ni contraseña.</p>
+  </div>
+  <div class="explicacion-card">
+    <span class="explicacion-icono">📺</span>
+    <h2>Sorteo en vivo</h2>
+    <p>El día del sorteo puedes seguir la cuenta regresiva y ver el número ganador en el momento en que se revela, desde cualquier celular.</p>
+  </div>
+</div>
+
+<div class="actions-row">
+  <a href="{{ url_for('main.consulta_publica') }}" class="btn btn-primary">Consultar mis números</a>
+  <a href="{{ url_for('main.login') }}" class="btn btn-secondary">Iniciar sesión</a>
+</div>
+{% endblock %}

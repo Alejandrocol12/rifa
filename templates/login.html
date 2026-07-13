@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión - Rifa{% endblock %}
+{% block content %}
+<div class="login-page">
+  <div class="login-box">
+    <div class="login-badge">🎟️</div>
+    <h1>Sistema de Rifa</h1>
+    <p class="subtitle">Inicia sesión para registrar ventas</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+    <a href="{{ url_for('main.consulta_publica') }}" class="volver-login">¿Ya compraste? Consulta tus números &rarr;</a>
+    <a href="{{ url_for('main.como_funciona') }}" class="volver-login">¿Cómo funciona esta rifa?</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Mapa de números - Rifa{% endblock %}
+{% block content %}
+<h1>Mapa de números (0000 - 9999)</h1>
+<p class="leyenda">
+  <span class="legend-dot libre"></span> Libre
+  <span class="legend-dot ocupado"></span> Ocupado
+</p>
+
+<div class="buscar-numero">
+  <label for="buscar">Buscar un número puntual</label>
+  <input type="text" id="buscar" maxlength="4" inputmode="numeric" placeholder="Ej: 0472" autocomplete="off">
+  <span id="buscar-resultado"></span>
+</div>
+
+{% for bloque in bloques %}
+{% set inicio = bloque | int %}
+<details class="bloque-numeros" {% if loop.first %}open{% endif %}>
+  <summary>Rango {{ bloque }} - {{ '%04d' % (inicio + 999) }}</summary>
+  <div class="grid-numeros">
+    {% for i in range(inicio, inicio + 1000) %}
+    {% set n = '%04d' % i %}
+    <span
+      class="celda-numero {{ 'ocupado' if n in asignados else 'libre' }}"
+      data-numero="{{ n }}"
+      title="{{ 'Ocupado - Boleta #' ~ asignados[n].boleta_id if n in asignados else 'Libre' }}"
+    >{{ n }}</span>
+    {% endfor %}
+  </div>
+</details>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var buscar = document.getElementById('buscar');
+  var resultado = document.getElementById('buscar-resultado');
+
+  buscar.addEventListener('input', function () {
+    buscar.value = buscar.value.replace(/\D/g, '').slice(0, 4);
+    var numero = buscar.value;
+
+    document.querySelectorAll('.celda-numero.resaltado').forEach(function (el) {
+      el.classList.remove('resaltado');
+    });
+
+    if (numero.length !== 4) {
+      resultado.textContent = '';
+      return;
+    }
+
+    fetch('/api/numero/' + numero)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.valido) {
+          resultado.textContent = data.mensaje;
+          resultado.className = 'estado-invalido';
+          return;
+        }
+        resultado.textContent = data.libre ? 'Libre ✓' : 'Ocupado ✗';
+        resultado.className = data.libre ? 'estado-libre' : 'estado-ocupado';
+
+        var celda = document.querySelector('.celda-numero[data-numero="' + numero + '"]');
+        if (celda) {
+          celda.classList.add('resaltado');
+          var detalle = celda.closest('details');
+          if (detalle) detalle.open = true;
+          celda.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+  });
+</script>
+{% endblock %}

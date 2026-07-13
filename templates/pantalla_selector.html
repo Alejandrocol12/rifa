@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Sorteo en vivo - Rifa{% endblock %}
+{% block content %}
+<h1>📺 Sorteo en vivo</h1>
+<p class="hint">Elige qué premio quieres ver. Cada uno tiene su propia cuenta regresiva y se revela solo cuando el número ganador lo dicte la loteria.</p>
+
+<div class="pantalla-selector-grid">
+  {% for i in (1, 2, 3, 4) %}
+  {% set fecha = config.fecha_premio(i) %}
+  <a href="{{ url_for('main.pantalla_en_vivo', numero_premio=i) }}" target="_blank" class="pantalla-selector-card">
+    <span class="pantalla-selector-titulo">Premio {{ i }}</span>
+    {% if fecha %}
+      <span class="hint">{{ fecha.strftime('%Y-%m-%d %H:%M') }}</span>
+    {% else %}
+      <span class="hint">Fecha por confirmar</span>
+    {% endif %}
+    <span class="btn btn-primary btn-sm">Ver pantalla &#8599;</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

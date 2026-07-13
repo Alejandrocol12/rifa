@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Consulta tus números - Rifa{% endblock %}
+{% block content %}
+<h1>🎟️ Estado de la rifa</h1>
+
+<div class="actions-row">
+  <a href="{{ url_for('main.como_funciona') }}" class="btn btn-secondary btn-sm">¿Cómo funciona esta rifa?</a>
+  <a href="{{ url_for('main.pantalla_selector') }}" target="_blank" class="btn btn-secondary btn-sm">📺 Sorteo en vivo</a>
+</div>
+
+<div class="progreso-rifa">
+  <div class="progreso-rifa-barra">
+    <div class="progreso-rifa-relleno" style="width: {{ (numeros_asignados / total_numeros * 100) | round(1) }}%"></div>
+  </div>
+  <p class="hint">
+    <strong>{{ numeros_asignados }}</strong> de {{ total_numeros }} números vendidos
+    ({{ (numeros_asignados / total_numeros * 100) | round(1) }}%) — quedan
+    <strong>{{ numeros_libres }}</strong> libres.
+  </p>
+</div>
+
+{% if config.fecha_premio1 or config.fecha_premio2 or config.fecha_premio3 or config.fecha_premio4 %}
+<div class="proximos-sorteos">
+  {% for i in (1, 2, 3, 4) %}
+  {% set fecha = config['fecha_premio' ~ i] %}
+  <div class="proximo-sorteo-card">
+    <span class="proximo-sorteo-card-titulo">Premio {{ i }}</span>
+    {% if fecha %}
+      <span class="proximo-sorteo-card-fecha">{{ fecha.strftime('%Y-%m-%d %H:%M') }}</span>
+      <span class="hint cuenta-regresiva" data-fecha="{{ fecha.isoformat() }}" data-tipo="sorteo">Calculando...</span>
+    {% else %}
+      <span class="hint">Fecha por confirmar</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="login-box consulta-box">
+  <div class="login-badge">🔍</div>
+  <h2 class="consulta-titulo">Consulta tus números</h2>
+  <p class="subtitle">Ingresa tu cédula para ver tus números y si ya pagaste cada premio.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="documento">Cédula / Documento</label>
+    <input type="text" id="documento" name="documento" value="{{ documento }}" autocomplete="off" required autofocus>
+    <button type="submit" class="btn btn-primary btn-block">Buscar</button>
+  </form>
+
+  {% if buscado %}
+    {% if boletas %}
+    <div class="consulta-resultados">
+      {% for b in boletas %}
+      <div class="consulta-resultado">
+        <div class="consulta-resultado-header">
+          <span class="consulta-nombre">{{ b.cliente.nombre }}</span>
+          <span>{% for n in b.numeros %}<span class="chip chip-lg">{{ n.numero }}</span>{% endfor %}</span>
+        </div>
+        <p class="hint consulta-pago">
+          Pagado: <strong>${{ '{:,}'.format(b.monto_pagado).replace(',', '.') }}</strong>
+          de ${{ '{:,}'.format(b.PRECIO_TOTAL).replace(',', '.') }}
+          ({{ b.premios_pagados }} de 4 premios)
+        </p>
+        {% if not b.pago_completo %}
+        <p class="hint consulta-vendedor">
+          ¿Falta pagar? Contacta a <strong>{{ b.vendedor.nombre }}</strong>{% if b.vendedor.telefono %} — {{ b.vendedor.telefono }}{% endif %}.
+        </p>
+        {% endif %}
+        <div class="premios-resultado">
+          {% for r in resultados_por_boleta[b.id] %}
+          <div class="premio-item {{ 'premio-item-ganador' if r.estado == 'ganador' }}">
+            <span class="premio-item-titulo">Premio {{ r.premio }}</span>
+
+            {% if r.estado == 'ganador' %}
+              <span class="numero-grande numero-grande-ganador">{{ r.numero_ganador }}</span>
+              <span class="estado-libre">🎉 ¡Ese número es tuyo, ganaste!</span>
+            {% elif r.estado == 'ganador_sin_pago' %}
+              <span class="numero-grande numero-grande-perdido">{{ r.numero_ganador }}</span>
+              <span class="estado-ocupado">Ese número es tuyo, pero no pagaste este premio</span>
+            {% elif r.estado == 'no_ganador' %}
+              <span class="hint">No ganó (salió {{ r.numero_ganador }})</span>
+            {% else %}
+              {% if r.pagado %}
+                <span class="estado-libre">Pagado — en juego</span>
+              {% else %}
+                <span class="estado-ocupado">Sin pagar</span>
+              {% endif %}
+              {% if r.fecha_limite %}
+                <span class="hint cuenta-regresiva" data-fecha="{{ r.fecha_limite.isoformat() }}" data-tipo="{{ 'sorteo' if r.pagado else 'plazo' }}">Calculando...</span>
+              {% else %}
+                <span class="hint">Fecha del sorteo por confirmar</span>
+              {% endif %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="hint consulta-vacio">No encontramos boletas registradas con ese documento.</p>
+    {% endif %}
+  {% endif %}
+
+  <a href="{{ url_for('main.login') }}" class="volver-login">&larr; Volver al inicio de sesión</a>
+</div>
+
+<h2>Premios sorteados hasta ahora</h2>
+{% if sorteos_publicos %}
+<div class="sorteos-grid">
+  {% for s in sorteos_publicos %}
+  <div class="sorteo-card">
+    <span class="sorteo-card-premio">Premio {{ s.numero_premio }}</span>
+    <span class="numero-grande">{{ s.numero }}</span>
+    {% if s.etiqueta %}<span class="hint">{{ s.etiqueta }}</span>{% endif %}
+    <span class="hint">{{ s.fecha.strftime('%Y-%m-%d %H:%M') }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="hint">Todavía no se ha realizado ningún sorteo.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  inicializarCuentasRegresivas();
+</script>
+{% endblock %}
