@@ -306,5 +306,31 @@ function inicializarConfirmaciones() {
   });
 }
 
+function inicializarBannerInstalar() {
+  var banner = document.getElementById('instalar-banner');
+  if (!banner) return;
+
+  var CLAVE_DESCARTADO = 'rifa-banner-instalar-oculto';
+  var yaDescartado = localStorage.getItem(CLAVE_DESCARTADO) === 'si';
+  var enStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var esMovil = window.matchMedia('(max-width: 820px)').matches;
+
+  if (yaDescartado || enStandalone || !esMovil) return;
+
+  var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var textoEl = document.getElementById('instalar-banner-texto');
+  textoEl.textContent = esIOS
+    ? 'Consejo: toca el botón compartir de Safari y elige "Agregar a pantalla de inicio" para usar la app sin la barra del navegador.'
+    : 'Consejo: abre el menú del navegador y elige "Agregar a pantalla de inicio" (o "Instalar app") para usar la app sin la barra del navegador.';
+
+  banner.hidden = false;
+
+  document.getElementById('instalar-banner-cerrar').addEventListener('click', function () {
+    banner.hidden = true;
+    localStorage.setItem(CLAVE_DESCARTADO, 'si');
+  });
+}
+
 inicializarMenuMovil();
 inicializarConfirmaciones();
+inicializarBannerInstalar();

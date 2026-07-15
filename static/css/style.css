@@ -191,6 +191,36 @@ a { color: var(--primario); }
 .flash-success::before { content: "✓"; }
 .flash-error::before { content: "!"; }
 
+/* Aviso para agregar la app a la pantalla de inicio (oculta la barra del
+   navegador). Solo aparece en móvil, si no está ya instalada, y se puede
+   cerrar de forma permanente. */
+.instalar-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--primario-claro);
+  color: var(--primario-oscuro);
+  padding: 10px 44px 10px 16px;
+  font-size: 0.85rem;
+  text-align: center;
+  position: relative;
+}
+.instalar-banner[hidden] { display: none; }
+#instalar-banner-cerrar {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--primario-oscuro);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
 .titulo-con-accion {
   display: flex;
   align-items: center;
