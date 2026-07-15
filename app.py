@@ -16,7 +16,7 @@ logger = logging.getLogger("rifa")
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = _get_secret_key()
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///rifa.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = _get_database_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
@@ -36,6 +36,24 @@ def create_app():
     app.register_blueprint(main_bp)
 
     return app
+
+
+def _get_database_uri():
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        return "sqlite:///rifa.db"
+    # Usamos el driver psycopg (v3) en vez de psycopg2: psycopg2-binary suele
+    # fallar en contenedores minimalistas (Railway/Nixpacks) con el error
+    # "libpq.so.5: cannot open shared object file" porque no encuentra la
+    # librería del sistema; psycopg[binary] no depende de eso. Railway (y la
+    # mayoría de hostings) entregan la URL como postgres:// o postgresql://,
+    # que SQLAlchemy interpretaría con psycopg2 por defecto si no se lo
+    # indicamos explícitamente.
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return database_url
 
 
 def _get_secret_key():
