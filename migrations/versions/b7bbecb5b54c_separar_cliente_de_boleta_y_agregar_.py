@@ -35,16 +35,16 @@ def upgrade():
     with op.batch_alter_table('boleta', schema=None) as batch_op:
         batch_op.add_column(sa.Column('cliente_documento', sa.String(length=30), nullable=True))
         batch_op.add_column(
-            sa.Column('pagado_premio1', sa.Boolean(), nullable=False, server_default=sa.text('0'))
+            sa.Column('pagado_premio1', sa.Boolean(), nullable=False, server_default=sa.text('false'))
         )
         batch_op.add_column(
-            sa.Column('pagado_premio2', sa.Boolean(), nullable=False, server_default=sa.text('0'))
+            sa.Column('pagado_premio2', sa.Boolean(), nullable=False, server_default=sa.text('false'))
         )
         batch_op.add_column(
-            sa.Column('pagado_premio3', sa.Boolean(), nullable=False, server_default=sa.text('0'))
+            sa.Column('pagado_premio3', sa.Boolean(), nullable=False, server_default=sa.text('false'))
         )
         batch_op.add_column(
-            sa.Column('pagado_premio4', sa.Boolean(), nullable=False, server_default=sa.text('0'))
+            sa.Column('pagado_premio4', sa.Boolean(), nullable=False, server_default=sa.text('false'))
         )
 
     # 3. Migrar los datos: por cada documento que ya existía en boleta, crear
