@@ -3,10 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5">
+  <meta name="theme-color" content="#059669">
   <title>{% block title %}Sistema de Rifa{% endblock %}</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎟️</text></svg>">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- Al "agregar a pantalla de inicio", esto hace que abra sin la barra de
+       direcciones/búsqueda del navegador, como una app aparte. -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon.svg') }}">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rifa">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   {% if current_user.is_authenticated %}

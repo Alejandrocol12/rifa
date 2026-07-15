@@ -15,7 +15,12 @@
     consulta de clientes, con cuenta regresiva — y también funcionan como el plazo límite
     para que un cliente pague ese premio.
   </p>
-  <form method="post" action="{{ url_for('main.admin_configurar_fechas_sorteo') }}" class="ticket-form">
+  <form
+    method="post"
+    action="{{ url_for('main.admin_configurar_fechas_sorteo') }}"
+    class="ticket-form"
+    onsubmit="return confirm('¿Guardar estas fechas de sorteo? Se actualizan de inmediato en la consulta pública.');"
+  >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for i in (1, 2, 3, 4) %}
     <label for="fecha_premio{{ i }}">Fecha y hora — Premio {{ i }}</label>
@@ -42,7 +47,7 @@
 
 <fieldset>
   <legend>Registrar número ganador</legend>
-  <form method="post" class="ticket-form">
+  <form method="post" class="ticket-form" id="form-registrar-sorteo">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="numeros-inputs">
       <div class="numero-field">
@@ -122,4 +127,23 @@
 {% else %}
 <p class="hint">Todavía no se ha registrado ningún sorteo.</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('form-registrar-sorteo').addEventListener('submit', function (e) {
+    var numero = document.getElementById('numero').value;
+    var selectPremio = document.getElementById('numero_premio');
+    var premioTexto = selectPremio.options[selectPremio.selectedIndex]
+      ? selectPremio.options[selectPremio.selectedIndex].text
+      : 'ese premio';
+
+    var confirmado = confirm(
+      'Vas a registrar el número ' + numero + ' como ganador del ' + premioTexto + '.\n\n' +
+      'Esto se publica de inmediato en la consulta pública y en la pantalla en vivo. ' +
+      '¿Confirmas que es correcto?'
+    );
+    if (!confirmado) e.preventDefault();
+  });
+</script>
 {% endblock %}

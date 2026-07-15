@@ -11,6 +11,32 @@
   <button type="submit" class="btn btn-secondary">Buscar</button>
 </form>
 
+{% if current_user.is_admin %}
+<details class="bloque-numeros">
+  <summary>+ Fusionar clientes duplicados</summary>
+  <p class="hint">
+    Si una misma persona quedó registrada dos veces por un error de cédula, junta las dos
+    aquí: todas las boletas de la cédula "a fusionar" pasan a la cédula "a conservar", y la
+    duplicada se elimina.
+  </p>
+  <form
+    method="post"
+    action="{{ url_for('main.admin_fusionar_clientes') }}"
+    class="ticket-form"
+    onsubmit="return confirm('¿Fusionar estas dos cédulas? La cédula a fusionar se elimina y sus boletas pasan a la otra. Esta acción no se puede deshacer.');"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="documento_conservar">Cédula a conservar *</label>
+    <input type="text" id="documento_conservar" name="documento_conservar" required>
+
+    <label for="documento_fusionar">Cédula a fusionar (se elimina) *</label>
+    <input type="text" id="documento_fusionar" name="documento_fusionar" required>
+
+    <button type="submit" class="btn btn-peligro">Fusionar</button>
+  </form>
+</details>
+{% endif %}
+
 <p class="hint">{{ total_clientes }} cliente{{ 's' if total_clientes != 1 }} (identificados por cédula/documento).</p>
 
 <div class="tabla-wrap">

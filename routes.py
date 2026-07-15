@@ -11,7 +11,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from extensions import db, limiter
-from models import Boleta, Cliente, ConfiguracionRifa, NumeroAsignado, Sorteo, Vendedor
+from models import Boleta, Cliente, ConfiguracionRifa, HistorialPago, NumeroAsignado, Sorteo, Vendedor
 
 bp = Blueprint("main", __name__)
 logger = logging.getLogger("rifa")
@@ -301,15 +301,17 @@ def boletas():
 
     if pago == "pendiente":
         query = query.filter(
+            Boleta.anulada.is_(False),
             or_(
                 Boleta.pagado_premio1.is_(False),
                 Boleta.pagado_premio2.is_(False),
                 Boleta.pagado_premio3.is_(False),
                 Boleta.pagado_premio4.is_(False),
-            )
+            ),
         )
     elif pago == "completo":
         query = query.filter(
+            Boleta.anulada.is_(False),
             Boleta.pagado_premio1.is_(True),
             Boleta.pagado_premio2.is_(True),
             Boleta.pagado_premio3.is_(True),
@@ -328,7 +330,7 @@ def clientes():
     q = request.args.get("q", "").strip()
     page = request.args.get("page", 1, type=int)
 
-    query = Boleta.query.join(Cliente)
+    query = Boleta.query.join(Cliente).filter(Boleta.anulada.is_(False))
     if not current_user.is_admin:
         query = query.filter(Boleta.vendedor_id == current_user.id)
     if q:
@@ -363,10 +365,45 @@ def clientes():
     )
 
 
+@bp.route("/admin/clientes/fusionar", methods=["POST"])
+@login_required
+@admin_required
+def admin_fusionar_clientes():
+    documento_conservar = request.form.get("documento_conservar", "").strip()
+    documento_fusionar = request.form.get("documento_fusionar", "").strip()
+
+    if not documento_conservar or not documento_fusionar:
+        flash("Debes indicar las dos cédulas.", "error")
+    elif documento_conservar == documento_fusionar:
+        flash("Las dos cédulas deben ser diferentes.", "error")
+    else:
+        conservar = Cliente.query.get(documento_conservar)
+        fusionar = Cliente.query.get(documento_fusionar)
+        if not conservar or not fusionar:
+            flash("No se encontró alguna de las dos cédulas.", "error")
+        else:
+            boletas_movidas = Boleta.query.filter_by(cliente_documento=documento_fusionar).update(
+                {"cliente_documento": documento_conservar}
+            )
+            db.session.delete(fusionar)
+            db.session.commit()
+            logger.info(
+                "Cliente %s fusionado dentro de %s por %s (%s boletas movidas)",
+                documento_fusionar, documento_conservar, current_user.username, boletas_movidas,
+            )
+            flash(
+                f"Se fusionó la cédula {documento_fusionar} dentro de {documento_conservar} "
+                f"({boletas_movidas} boleta(s) movida(s)).",
+                "success",
+            )
+
+    return redirect(url_for("main.clientes"))
+
+
 @bp.route("/clientes/<documento>")
 @login_required
 def cliente_detalle(documento):
-    query = Boleta.query.filter_by(cliente_documento=documento)
+    query = Boleta.query.filter_by(cliente_documento=documento, anulada=False)
     if not current_user.is_admin:
         query = query.filter_by(vendedor_id=current_user.id)
 
@@ -435,17 +472,59 @@ def boleta_pago(boleta_id):
     if not current_user.is_admin and boleta.vendedor_id != current_user.id:
         flash("No tienes permiso para modificar el pago de esa boleta.", "error")
         return redirect(url_for("main.boletas"))
+    if boleta.anulada:
+        flash("Esta boleta está anulada; no se puede modificar su pago.", "error")
+        return redirect(url_for("main.boleta_detalle", boleta_id=boleta.id))
 
-    boleta.pagado_premio1 = bool(request.form.get("pagado_premio1"))
-    boleta.pagado_premio2 = bool(request.form.get("pagado_premio2"))
-    boleta.pagado_premio3 = bool(request.form.get("pagado_premio3"))
-    boleta.pagado_premio4 = bool(request.form.get("pagado_premio4"))
+    for premio in (1, 2, 3, 4):
+        nuevo_valor = bool(request.form.get(f"pagado_premio{premio}"))
+        valor_anterior = getattr(boleta, f"pagado_premio{premio}")
+        if nuevo_valor != valor_anterior:
+            db.session.add(
+                HistorialPago(
+                    boleta_id=boleta.id,
+                    numero_premio=premio,
+                    marcado=nuevo_valor,
+                    vendedor_id=current_user.id,
+                )
+            )
+            setattr(boleta, f"pagado_premio{premio}", nuevo_valor)
+
     db.session.commit()
     logger.info(
         "Pago actualizado en boleta #%s por %s: %s/4 premios ($%s)",
         boleta.id, current_user.username, boleta.premios_pagados, boleta.monto_pagado,
     )
     flash("Pago actualizado.", "success")
+    return redirect(url_for("main.boleta_detalle", boleta_id=boleta.id))
+
+
+@bp.route("/boletas/<int:boleta_id>/anular", methods=["POST"])
+@login_required
+def boleta_anular(boleta_id):
+    boleta = Boleta.query.get_or_404(boleta_id)
+    if not current_user.is_admin and boleta.vendedor_id != current_user.id:
+        flash("No tienes permiso para anular esa boleta.", "error")
+        return redirect(url_for("main.boletas"))
+    if boleta.anulada:
+        flash("Esa boleta ya estaba anulada.", "error")
+        return redirect(url_for("main.boleta_detalle", boleta_id=boleta.id))
+
+    numeros = sorted(n.numero for n in boleta.numeros)
+    for numero_asignado in list(boleta.numeros):
+        db.session.delete(numero_asignado)
+
+    boleta.anulada = True
+    boleta.fecha_anulacion = datetime.utcnow()
+    boleta.anulada_por_id = current_user.id
+    boleta.numeros_anulados = ", ".join(numeros)
+    db.session.commit()
+
+    logger.info(
+        "Boleta #%s anulada por %s (números liberados: %s)",
+        boleta.id, current_user.username, ", ".join(numeros),
+    )
+    flash(f"Boleta #{boleta.id} anulada. Los números {', '.join(numeros)} vuelven a estar libres.", "success")
     return redirect(url_for("main.boleta_detalle", boleta_id=boleta.id))
 
 
@@ -552,7 +631,7 @@ def admin_vendedor_historial(vendedor_id):
     vendedor = Vendedor.query.get_or_404(vendedor_id)
     page = request.args.get("page", 1, type=int)
 
-    base_query = Boleta.query.filter_by(vendedor_id=vendedor.id)
+    base_query = Boleta.query.filter_by(vendedor_id=vendedor.id, anulada=False)
     pagina = base_query.order_by(Boleta.fecha.desc()).paginate(
         page=page, per_page=BOLETAS_POR_PAGINA, error_out=False
     )
@@ -703,7 +782,9 @@ def consulta_publica():
         buscado = True
         if documento:
             boletas_encontradas = (
-                Boleta.query.filter_by(cliente_documento=documento).order_by(Boleta.fecha.desc()).all()
+                Boleta.query.filter_by(cliente_documento=documento, anulada=False)
+                .order_by(Boleta.fecha.desc())
+                .all()
             )
 
     config = ConfiguracionRifa.obtener()
@@ -737,7 +818,7 @@ def admin_exportar_csv():
     writer.writerow(
         [
             "Boleta", "Cliente", "Documento", "Telefono", "Direccion", "Email", "Numeros",
-            "Vendedor", "Fecha", "Premios Pagados (de 4)", "Monto Pagado", "Monto Total",
+            "Vendedor", "Fecha", "Premios Pagados (de 4)", "Monto Pagado", "Monto Total", "Anulada",
         ]
     )
     for b in Boleta.query.order_by(Boleta.id).all():
@@ -749,12 +830,13 @@ def admin_exportar_csv():
                 _csv_safe(b.cliente.telefono),
                 _csv_safe(b.cliente.direccion or ""),
                 _csv_safe(b.cliente.email or ""),
-                ", ".join(n.numero for n in b.numeros),
+                ", ".join(n.numero for n in b.numeros) or _csv_safe(b.numeros_anulados or ""),
                 b.vendedor.username,
                 b.fecha.strftime("%Y-%m-%d %H:%M"),
                 b.premios_pagados,
                 b.monto_pagado,
                 Boleta.PRECIO_TOTAL,
+                "Sí" if b.anulada else "No",
             ]
         )
 

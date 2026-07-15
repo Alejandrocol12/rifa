@@ -54,7 +54,11 @@
           <a href="{{ url_for('main.admin_editar_vendedor', vendedor_id=v.id) }}" class="btn btn-secondary btn-sm">Editar</a>
           <a href="{{ url_for('main.admin_vendedor_historial', vendedor_id=v.id) }}" class="btn btn-secondary btn-sm">Ver historial</a>
           {% if v.id != current_user.id %}
-          <form method="post" action="{{ url_for('main.admin_toggle_vendedor', vendedor_id=v.id) }}">
+          <form
+            method="post"
+            action="{{ url_for('main.admin_toggle_vendedor', vendedor_id=v.id) }}"
+            {% if v.activo %}onsubmit="return confirm('¿Desactivar a {{ v.username }}? No podrá iniciar sesión hasta que lo actives de nuevo.');"{% endif %}
+          >
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary btn-sm">
               {{ 'Desactivar' if v.activo else 'Activar' }}

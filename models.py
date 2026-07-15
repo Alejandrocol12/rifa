@@ -16,7 +16,9 @@ class Vendedor(UserMixin, db.Model):
     activo = db.Column(db.Boolean, default=True, nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
-    boletas = db.relationship("Boleta", backref="vendedor", lazy=True)
+    boletas = db.relationship(
+        "Boleta", backref="vendedor", lazy=True, foreign_keys="Boleta.vendedor_id"
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -57,9 +59,22 @@ class Boleta(db.Model):
     pagado_premio3 = db.Column(db.Boolean, default=False, nullable=False)
     pagado_premio4 = db.Column(db.Boolean, default=False, nullable=False)
 
+    # Una boleta anulada libera sus números (se borran de NumeroAsignado para
+    # que se puedan volver a vender), pero la fila se conserva para dejar
+    # rastro de que existió y quién la anuló.
+    anulada = db.Column(db.Boolean, default=False, nullable=False)
+    fecha_anulacion = db.Column(db.DateTime)
+    anulada_por_id = db.Column(db.Integer, db.ForeignKey("vendedor.id"))
+    numeros_anulados = db.Column(db.String(50))
+
     numeros = db.relationship(
         "NumeroAsignado", backref="boleta", lazy=True, cascade="all, delete-orphan"
     )
+    historial_pagos = db.relationship(
+        "HistorialPago", backref="boleta", lazy=True,
+        order_by="HistorialPago.fecha.desc()", cascade="all, delete-orphan",
+    )
+    anulada_por = db.relationship("Vendedor", foreign_keys=[anulada_por_id])
 
     @property
     def premios_pagados(self):
@@ -74,6 +89,19 @@ class Boleta(db.Model):
     @property
     def pago_completo(self):
         return self.premios_pagados == 4
+
+
+class HistorialPago(db.Model):
+    # Registro de auditoría: cada vez que alguien marca o desmarca un premio
+    # como pagado en una boleta, queda una fila aquí con quién y cuándo.
+    id = db.Column(db.Integer, primary_key=True)
+    boleta_id = db.Column(db.Integer, db.ForeignKey("boleta.id"), nullable=False)
+    numero_premio = db.Column(db.Integer, nullable=False)
+    marcado = db.Column(db.Boolean, nullable=False)
+    vendedor_id = db.Column(db.Integer, db.ForeignKey("vendedor.id"), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+
+    vendedor = db.relationship("Vendedor")
 
 
 class NumeroAsignado(db.Model):

@@ -294,6 +294,34 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, inp
 .btn-secondary:hover { border-color: #c7cad3; background: var(--fondo); }
 .btn-peligro { color: var(--rojo); border-color: var(--rojo-borde); }
 .btn-peligro:hover { background: var(--rojo-claro); border-color: var(--rojo); }
+
+.badge-anulada {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: var(--rojo-claro);
+  color: var(--rojo);
+  padding: 3px 9px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.historial-pagos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.historial-pagos li {
+  font-size: 0.88rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--fondo);
+}
+.historial-pagos li:last-child { border-bottom: none; padding-bottom: 0; }
 .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
 .btn-block { width: 100%; margin-top: 18px; }
 

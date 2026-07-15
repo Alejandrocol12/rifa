@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Boleta #{{ boleta.id }} - Rifa{% endblock %}
 {% block content %}
-<h1>Boleta #{{ boleta.id }}</h1>
+<h1>Boleta #{{ boleta.id }}{% if boleta.anulada %} <span class="badge-anulada">ANULADA</span>{% endif %}</h1>
+
+{% if boleta.anulada %}
+<div class="flash flash-error" style="margin-bottom: 18px;">
+  Esta boleta fue anulada el {{ boleta.fecha_anulacion.strftime('%Y-%m-%d %H:%M') }}
+  por {{ boleta.anulada_por.nombre if boleta.anulada_por else '—' }}.
+  {% if boleta.numeros_anulados %}Los números liberados fueron: {{ boleta.numeros_anulados }}.{% endif %}
+</div>
+{% endif %}
 
 <div class="detalle-box">
   <p><strong>Cliente:</strong> {{ boleta.cliente.nombre }}</p>
@@ -12,10 +20,17 @@
   <p><strong>Vendedor:</strong> {{ boleta.vendedor.nombre }}</p>
   <p><strong>Fecha:</strong> {{ boleta.fecha.strftime('%Y-%m-%d %H:%M') }}</p>
   <p><strong>Números:</strong>
-    <span>{% for n in boleta.numeros %}<span class="chip chip-lg">{{ n.numero }}</span>{% endfor %}</span>
+    <span>
+      {% if boleta.anulada %}
+        {{ boleta.numeros_anulados or '—' }}
+      {% else %}
+        {% for n in boleta.numeros %}<span class="chip chip-lg">{{ n.numero }}</span>{% endfor %}
+      {% endif %}
+    </span>
   </p>
 </div>
 
+{% if not boleta.anulada %}
 <fieldset>
   <legend>Pago (4 premios de $25.000 c/u — total $100.000)</legend>
   <p class="hint">
@@ -23,7 +38,12 @@
     Llevas pagados <strong>${{ '{:,}'.format(boleta.monto_pagado).replace(',', '.') }}</strong>
     de $100.000 ({{ boleta.premios_pagados }} de 4).
   </p>
-  <form method="post" action="{{ url_for('main.boleta_pago', boleta_id=boleta.id) }}" class="pago-form">
+  <form
+    method="post"
+    action="{{ url_for('main.boleta_pago', boleta_id=boleta.id) }}"
+    class="pago-form"
+    onsubmit="return confirm('¿Confirmas guardar estos cambios en el pago de la boleta #{{ boleta.id }}?');"
+  >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for i in (1, 2, 3, 4) %}
     <label class="checkbox-label pago-premio">
@@ -34,11 +54,35 @@
     <button type="submit" class="btn btn-primary btn-sm">Guardar pago</button>
   </form>
 </fieldset>
+{% endif %}
+
+{% if boleta.historial_pagos %}
+<fieldset>
+  <legend>Historial de cambios en el pago</legend>
+  <ul class="historial-pagos">
+    {% for h in boleta.historial_pagos %}
+    <li>
+      <strong>{{ h.vendedor.nombre }}</strong>
+      {{ 'marcó como pagado' if h.marcado else 'desmarcó' }} el Premio {{ h.numero_premio }}
+      <span class="hint">— {{ h.fecha.strftime('%Y-%m-%d %H:%M') }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</fieldset>
+{% endif %}
 
 <div class="actions-row">
   <a href="{{ url_for('main.boletas') }}" class="btn btn-secondary">&larr; Volver</a>
-  {% if current_user.is_admin or boleta.vendedor_id == current_user.id %}
+  {% if not boleta.anulada and (current_user.is_admin or boleta.vendedor_id == current_user.id) %}
   <a href="{{ url_for('main.boleta_editar', boleta_id=boleta.id) }}" class="btn btn-primary">Editar datos del cliente</a>
+  <form
+    method="post"
+    action="{{ url_for('main.boleta_anular', boleta_id=boleta.id) }}"
+    onsubmit="return confirm('¿Anular la boleta #{{ boleta.id }}? Sus números quedarán libres para venderse a otra persona. Esta acción no se puede deshacer.');"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-peligro">Anular boleta</button>
+  </form>
   {% endif %}
 </div>
 {% endblock %}

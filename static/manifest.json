@@ -1,0 +1,18 @@
+{
+  "name": "Sistema de Rifa",
+  "short_name": "Rifa",
+  "description": "Vende boletas, consulta tus números y sigue el sorteo en vivo.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f5",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

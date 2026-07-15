@@ -2,6 +2,7 @@ import logging
 import os
 import secrets
 
+import click
 from flask import Flask
 
 from extensions import csrf, db, limiter, login_manager, migrate
@@ -35,7 +36,36 @@ def create_app():
 
     app.register_blueprint(main_bp)
 
+    _registrar_comandos_cli(app)
+
     return app
+
+
+def _registrar_comandos_cli(app):
+    @app.cli.command("seed-admin")
+    def seed_admin_command():
+        """Crea el usuario admin inicial si todavía no existe ningún vendedor."""
+        _crear_admin_inicial()
+
+    @app.cli.command("reset-admin-password")
+    @click.argument("username")
+    def reset_admin_password_command(username):
+        """Genera una contraseña nueva para recuperar el acceso a una cuenta,
+        sin tener que tocar la base de datos a mano. También la reactiva si
+        estaba desactivada."""
+        from models import Vendedor
+
+        vendedor = Vendedor.query.filter_by(username=username).first()
+        if vendedor is None:
+            print(f"No existe ningún vendedor con el usuario '{username}'.")
+            return
+
+        password = secrets.token_urlsafe(9)
+        vendedor.set_password(password)
+        vendedor.activo = True
+        db.session.commit()
+        logger.info("Contraseña restablecida para '%s'", username)
+        print(f"Contraseña restablecida -> usuario: {username} / contraseña: {password}")
 
 
 def _get_database_uri():
@@ -90,12 +120,6 @@ def _crear_admin_inicial():
 
 
 app = create_app()
-
-
-@app.cli.command("seed-admin")
-def seed_admin_command():
-    """Crea el usuario admin inicial si todavía no existe ningún vendedor."""
-    _crear_admin_inicial()
 
 
 if __name__ == "__main__":

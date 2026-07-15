@@ -36,9 +36,13 @@
       <td>{{ b.cliente.nombre }}</td>
       <td>{{ b.cliente.documento }}</td>
       <td>{{ b.cliente.telefono }}</td>
-      <td>{% for n in b.numeros %}<span class="chip">{{ n.numero }}</span>{% endfor %}</td>
       <td>
-        {% if b.pago_completo %}<span class="estado-libre">{{ b.premios_pagados }}/4</span>
+        {% if b.anulada %}<span class="hint">{{ b.numeros_anulados or '—' }}</span>
+        {% else %}{% for n in b.numeros %}<span class="chip">{{ n.numero }}</span>{% endfor %}{% endif %}
+      </td>
+      <td>
+        {% if b.anulada %}<span class="badge-anulada">ANULADA</span>
+        {% elif b.pago_completo %}<span class="estado-libre">{{ b.premios_pagados }}/4</span>
         {% elif b.premios_pagados > 0 %}<span class="estado-invalido">{{ b.premios_pagados }}/4</span>
         {% else %}<span class="estado-ocupado">0/4</span>{% endif %}
       </td>
