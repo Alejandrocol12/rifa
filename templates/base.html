@@ -72,6 +72,17 @@
     {% block content %}{% endblock %}
   </main>
 
+  <div class="modal-overlay" id="modal-confirmacion" hidden>
+    <div class="modal-box" id="modal-box" role="alertdialog" aria-modal="true" aria-describedby="modal-mensaje">
+      <div class="modal-icono" id="modal-icono">❓</div>
+      <p class="modal-mensaje" id="modal-mensaje"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secondary" id="modal-cancelar">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="modal-aceptar">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>

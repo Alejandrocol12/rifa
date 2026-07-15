@@ -23,7 +23,8 @@
     method="post"
     action="{{ url_for('main.admin_fusionar_clientes') }}"
     class="ticket-form"
-    onsubmit="return confirm('¿Fusionar estas dos cédulas? La cédula a fusionar se elimina y sus boletas pasan a la otra. Esta acción no se puede deshacer.');"
+    data-confirmar="¿Fusionar estas dos cédulas? La cédula a fusionar se elimina y sus boletas pasan a la otra. Esta acción no se puede deshacer."
+    data-confirmar-tipo="peligro"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="documento_conservar">Cédula a conservar *</label>

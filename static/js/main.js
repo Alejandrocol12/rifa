@@ -243,4 +243,68 @@ function inicializarPantallaEnVivo() {
   setInterval(consultarResultado, 5000);
 }
 
+function confirmarPersonalizado(mensaje, tipo) {
+  return new Promise(function (resolve) {
+    var overlay = document.getElementById('modal-confirmacion');
+    var caja = document.getElementById('modal-box');
+    var mensajeEl = document.getElementById('modal-mensaje');
+    var iconoEl = document.getElementById('modal-icono');
+    var btnAceptar = document.getElementById('modal-aceptar');
+    var btnCancelar = document.getElementById('modal-cancelar');
+
+    if (!overlay) {
+      resolve(window.confirm(mensaje));
+      return;
+    }
+
+    var esPeligro = tipo === 'peligro';
+    mensajeEl.textContent = mensaje;
+    iconoEl.textContent = esPeligro ? '⚠️' : '❓';
+    caja.classList.toggle('modal-peligro', esPeligro);
+    btnAceptar.className = 'btn ' + (esPeligro ? 'btn-danger' : 'btn-primary');
+
+    overlay.hidden = false;
+    document.body.classList.add('modal-abierto');
+    btnAceptar.focus();
+
+    function cerrar(resultado) {
+      overlay.hidden = true;
+      document.body.classList.remove('modal-abierto');
+      btnAceptar.removeEventListener('click', alAceptar);
+      btnCancelar.removeEventListener('click', alCancelar);
+      overlay.removeEventListener('click', alHacerClicFuera);
+      document.removeEventListener('keydown', alPresionarTecla);
+      resolve(resultado);
+    }
+    function alAceptar() { cerrar(true); }
+    function alCancelar() { cerrar(false); }
+    function alHacerClicFuera(e) { if (e.target === overlay) cerrar(false); }
+    function alPresionarTecla(e) { if (e.key === 'Escape') cerrar(false); }
+
+    btnAceptar.addEventListener('click', alAceptar);
+    btnCancelar.addEventListener('click', alCancelar);
+    overlay.addEventListener('click', alHacerClicFuera);
+    document.addEventListener('keydown', alPresionarTecla);
+  });
+}
+
+function inicializarConfirmaciones() {
+  document.querySelectorAll('form[data-confirmar]').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      if (form.dataset.confirmado === 'si') return;
+      e.preventDefault();
+      confirmarPersonalizado(form.dataset.confirmar, form.dataset.confirmarTipo).then(function (aceptado) {
+        if (!aceptado) return;
+        form.dataset.confirmado = 'si';
+        if (form.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form.submit();
+        }
+      });
+    });
+  });
+}
+
 inicializarMenuMovil();
+inicializarConfirmaciones();

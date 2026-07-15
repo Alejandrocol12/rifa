@@ -19,7 +19,7 @@
     method="post"
     action="{{ url_for('main.admin_configurar_fechas_sorteo') }}"
     class="ticket-form"
-    onsubmit="return confirm('¿Guardar estas fechas de sorteo? Se actualizan de inmediato en la consulta pública.');"
+    data-confirmar="¿Guardar estas fechas de sorteo? Se actualizan de inmediato en la consulta pública."
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for i in (1, 2, 3, 4) %}
@@ -132,18 +132,29 @@
 {% block scripts %}
 <script>
   document.getElementById('form-registrar-sorteo').addEventListener('submit', function (e) {
+    var form = e.target;
+    if (form.dataset.confirmado === 'si') return;
+    e.preventDefault();
+
     var numero = document.getElementById('numero').value;
     var selectPremio = document.getElementById('numero_premio');
     var premioTexto = selectPremio.options[selectPremio.selectedIndex]
       ? selectPremio.options[selectPremio.selectedIndex].text
       : 'ese premio';
 
-    var confirmado = confirm(
-      'Vas a registrar el número ' + numero + ' como ganador del ' + premioTexto + '.\n\n' +
+    var mensaje = 'Vas a registrar el número ' + numero + ' como ganador del ' + premioTexto + '.\n\n' +
       'Esto se publica de inmediato en la consulta pública y en la pantalla en vivo. ' +
-      '¿Confirmas que es correcto?'
-    );
-    if (!confirmado) e.preventDefault();
+      '¿Confirmas que es correcto?';
+
+    confirmarPersonalizado(mensaje, 'peligro').then(function (aceptado) {
+      if (!aceptado) return;
+      form.dataset.confirmado = 'si';
+      if (form.requestSubmit) {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    });
   });
 </script>
 {% endblock %}

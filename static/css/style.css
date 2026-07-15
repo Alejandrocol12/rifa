@@ -288,12 +288,72 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, inp
   transition: background .12s ease, border-color .12s ease, transform .04s ease, box-shadow .12s ease;
 }
 .btn:active { transform: translateY(1px); }
-.btn-primary { background: var(--primario); color: var(--blanco); box-shadow: 0 1px 2px rgba(79, 70, 229, .25); }
+.btn-primary { background: var(--primario); color: var(--blanco); box-shadow: 0 1px 2px rgba(5, 150, 105, .25); }
 .btn-primary:hover { background: var(--primario-oscuro); }
 .btn-secondary { background: var(--blanco); color: var(--texto); border: 1px solid var(--borde); }
 .btn-secondary:hover { border-color: #c7cad3; background: var(--fondo); }
 .btn-peligro { color: var(--rojo); border-color: var(--rojo-borde); }
 .btn-peligro:hover { background: var(--rojo-claro); border-color: var(--rojo); }
+.btn-danger { background: var(--rojo); color: var(--blanco); box-shadow: 0 1px 2px rgba(220, 38, 38, .25); }
+.btn-danger:hover { background: #b91c1c; }
+
+/* Ventana de confirmación propia (reemplaza el confirm() nativo del navegador,
+   que en móvil muestra la URL cruda y no se puede estilizar). */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 22, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: modal-fondo .15s ease;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-hover);
+  max-width: 420px;
+  width: 100%;
+  padding: 24px;
+  animation: modal-subir .18s ease;
+}
+.modal-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 14px;
+  background: var(--primario-claro);
+  color: var(--primario-oscuro);
+}
+.modal-box.modal-peligro .modal-icono { background: var(--rojo-claro); color: var(--rojo); }
+.modal-mensaje {
+  margin: 0 0 22px;
+  font-size: 0.98rem;
+  color: var(--texto);
+  white-space: pre-line;
+  line-height: 1.5;
+}
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+body.modal-abierto { overflow: hidden; }
+
+@keyframes modal-fondo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-subir { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 480px) {
+  .modal-acciones { flex-direction: column-reverse; }
+  .modal-acciones .btn { width: 100%; }
+}
 
 .badge-anulada {
   display: inline-block;
@@ -352,7 +412,7 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, inp
   justify-content: center;
   font-size: 1.5rem;
   margin: 0 auto 16px;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, .35);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, .35);
 }
 .login-box h1 { margin-bottom: 4px; font-size: 1.3rem; }
 .subtitle { color: var(--texto-tenue); margin-top: 0; margin-bottom: 24px; font-size: 0.92rem; }

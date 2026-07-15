@@ -57,7 +57,7 @@
           <form
             method="post"
             action="{{ url_for('main.admin_toggle_vendedor', vendedor_id=v.id) }}"
-            {% if v.activo %}onsubmit="return confirm('¿Desactivar a {{ v.username }}? No podrá iniciar sesión hasta que lo actives de nuevo.');"{% endif %}
+            {% if v.activo %}data-confirmar="¿Desactivar a {{ v.username }}? No podrá iniciar sesión hasta que lo actives de nuevo." data-confirmar-tipo="peligro"{% endif %}
           >
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary btn-sm">
@@ -68,7 +68,8 @@
           <form
             method="post"
             action="{{ url_for('main.admin_eliminar_vendedor', vendedor_id=v.id) }}"
-            onsubmit="return confirm('¿Eliminar a {{ v.username }}? Esta acción no se puede deshacer.');"
+            data-confirmar="¿Eliminar a {{ v.username }}? Esta acción no se puede deshacer."
+            data-confirmar-tipo="peligro"
           >
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary btn-sm btn-peligro">Eliminar</button>

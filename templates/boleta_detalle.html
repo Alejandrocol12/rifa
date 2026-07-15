@@ -42,7 +42,7 @@
     method="post"
     action="{{ url_for('main.boleta_pago', boleta_id=boleta.id) }}"
     class="pago-form"
-    onsubmit="return confirm('¿Confirmas guardar estos cambios en el pago de la boleta #{{ boleta.id }}?');"
+    data-confirmar="¿Confirmas guardar estos cambios en el pago de la boleta #{{ boleta.id }}?"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for i in (1, 2, 3, 4) %}
@@ -78,7 +78,8 @@
   <form
     method="post"
     action="{{ url_for('main.boleta_anular', boleta_id=boleta.id) }}"
-    onsubmit="return confirm('¿Anular la boleta #{{ boleta.id }}? Sus números quedarán libres para venderse a otra persona. Esta acción no se puede deshacer.');"
+    data-confirmar="¿Anular la boleta #{{ boleta.id }}? Sus números quedarán libres para venderse a otra persona. Esta acción no se puede deshacer."
+    data-confirmar-tipo="peligro"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn btn-peligro">Anular boleta</button>
