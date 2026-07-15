@@ -143,10 +143,10 @@ def logout():
 @bp.route("/")
 @login_required
 def dashboard():
-    total_boletas = Boleta.query.count()
+    total_boletas = Boleta.query.filter_by(anulada=False).count()
     numeros_asignados = NumeroAsignado.query.count()
     numeros_libres = TOTAL_NUMEROS - numeros_asignados
-    mis_boletas = Boleta.query.filter_by(vendedor_id=current_user.id).count()
+    mis_boletas = Boleta.query.filter_by(vendedor_id=current_user.id, anulada=False).count()
 
     return render_template(
         "dashboard.html",

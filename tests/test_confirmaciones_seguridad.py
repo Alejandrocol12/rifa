@@ -170,6 +170,18 @@ def test_csv_incluye_columna_anulada(client, vendedor, admin):
     assert "Sí" in text
 
 
+def test_dashboard_no_cuenta_boletas_anuladas(client, vendedor):
+    crear_boleta(client, documento="DASH-001", numero1="0980", numero2="0981", numero3="0982")
+    boleta_anulada = crear_boleta(client, documento="DASH-002", numero1="0990", numero2="0991", numero3="0992")
+
+    login(client, "vend1", "clave123")
+    client.post(f"/boletas/{boleta_anulada.id}/anular", follow_redirects=True)
+
+    resp = client.get("/")
+    text = resp.get_data(as_text=True)
+    assert '<span class="card-value">1</span>' in text
+
+
 # --- Fusionar clientes ---
 
 
